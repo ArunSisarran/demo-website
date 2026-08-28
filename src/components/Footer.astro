@@ -1,0 +1,48 @@
+---
+import OpenNow from './OpenNow.astro';
+import { HOURS_ROWS } from '../lib/hours';
+---
+
+<footer class="bg-brand-dk text-paper">
+  <div class="mx-auto max-w-page px-6 py-20 md:px-10 md:py-28">
+    <div class="grid gap-14 md:grid-cols-[1.2fr_1fr_1fr]">
+      <div>
+        <p class="font-display text-3xl uppercase">Cellar<span class="text-accent">&amp;</span>Vine</p>
+        <p class="mt-5 max-w-xs text-paper/70">
+          Small-batch cocktails, low-intervention wine, and a bar that closes when the
+          conversation does.
+        </p>
+      </div>
+
+      <div>
+        <p class="eyebrow text-paper/70">Find us</p>
+        <address class="mt-5 not-italic text-paper/85">
+          14 Alder Lane<br />Fitzrovia, London W1T
+        </address>
+        <OpenNow class="mt-6 text-paper [&_[data-open-text]]:text-paper/85" />
+        <dl class="mt-4 space-y-1 text-sm text-paper/70">
+          {HOURS_ROWS.map((row) => (
+            <div class="flex justify-between gap-6">
+              <dt>{row.label}</dt>
+              <dd class="data text-paper/70">{row.time}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <div>
+        <p class="eyebrow text-paper/70">Contact</p>
+        <ul class="mt-5 space-y-2 text-paper/85">
+          <li><a class="underline decoration-paper/30 underline-offset-4 hover:decoration-paper" href="mailto:hello@cellarandvine.test">hello@cellarandvine.test</a></li>
+          <li><a class="underline decoration-paper/30 underline-offset-4 hover:decoration-paper" href="tel:+442071234567">+44 20 7123 4567</a></li>
+        </ul>
+        <a href="/menu" class="btn btn-primary mt-8">See the menu</a>
+      </div>
+    </div>
+
+    <div class="mt-16 flex flex-col gap-3 border-t border-paper/15 pt-8 text-sm text-paper/70 md:flex-row md:items-center md:justify-between">
+      <p>© {new Date().getFullYear()} Cellar &amp; Vine — a demonstration site.</p>
+      <p class="data text-paper/65">Demo — not a real bar. No orders are fulfilled.</p>
+    </div>
+  </div>
+</footer>

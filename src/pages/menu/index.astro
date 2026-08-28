@@ -1,0 +1,213 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import DrinkRow from '../../components/DrinkRow.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import OpenNow from '../../components/OpenNow.astro';
+import { CATEGORIES, ALLERGENS } from '../../content.config';
+
+const drinks = (await getCollection('drinks')).sort((a, b) => a.data.order - b.data.order);
+const groups = CATEGORIES.map((category) => ({
+  category,
+  items: drinks.filter((d) => d.data.category === category),
+})).filter((group) => group.items.length > 0);
+---
+
+<Base
+  title="Menu — Cellar & Vine"
+  description="The full list: house-macerated cocktails, low-intervention wine by the glass, zero-proof drinks, and whatever is in season. Serve sizes, strengths and allergens on every drink."
+  ogImage="/og/menu.jpg"
+  cartBar
+>
+  <div class="mx-auto max-w-page px-6 pt-16 pb-24 md:px-10 md:pt-24 md:pb-32">
+    <div class="flex items-center gap-4">
+      <span class="h-px w-10 bg-brand/40"></span>
+      <p class="eyebrow text-brand/75">Menu</p>
+    </div>
+
+    <div class="mt-10 grid gap-12 md:grid-cols-[1.1fr_1fr] md:items-end">
+      <h1 class="text-brand">
+        <span class="block font-body text-[clamp(2.5rem,7vw,6rem)] leading-none italic">The</span>
+        <span class="block font-display text-[clamp(3rem,9vw,6rem)] leading-[0.95] uppercase">Whole List</span>
+      </h1>
+      <p class="border-l-2 border-accent pl-6 text-ink/75">
+        Prices are what you pay. Every drink shows its serve size, strength, and what is
+        in it. If something has run out we say so before you order, not after.
+      </p>
+    </div>
+
+    {/* Without JS every drink simply shows — the controls only ever remove things. */}
+    <div class="filter-scope mt-14" data-filters>
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <div class="flex-1">
+          <label class="field-label" for="q">Search the list</label>
+          <input
+            type="search"
+            id="q"
+            data-search
+            placeholder="Try “gin”, “nothing too strong”, “rosé”"
+            autocomplete="off"
+            class="field-input mt-2"
+          />
+        </div>
+        <div class="sm:w-56">
+          <label class="field-label" for="sort">Order by</label>
+          <select id="sort" data-sort class="field-input mt-2">
+            <option value="menu">Menu order</option>
+            <option value="price-asc">Price — low to high</option>
+            <option value="price-desc">Price — high to low</option>
+            <option value="name">Name — A to Z</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Edge-to-edge horizontal scroll on phones; wraps from sm up. The
+          -my-2/py-2 pair stops the scroller clipping the focus ring. */}
+      <div class="-mx-6 -my-2 mt-6 overflow-x-auto px-6 py-2 sm:mx-0 sm:overflow-visible sm:px-0">
+        <fieldset class="flex w-max gap-3 sm:w-auto sm:flex-wrap">
+          <legend class="sr-only">Filter by category</legend>
+          <button type="button" data-reset class="chip shrink-0 hover:border-brand/60">All</button>
+          {CATEGORIES.map((category) => (
+            <>
+              <input type="checkbox" id={`cat-${category}`} value={category} data-cat-filter class="sr-only" />
+              <label for={`cat-${category}`} class="chip shrink-0 hover:border-brand/60">{category}</label>
+            </>
+          ))}
+          <input type="checkbox" id="cat-new" data-new-filter class="sr-only" />
+          <label for="cat-new" class="chip shrink-0 hover:border-brand/60">New this week</label>
+        </fieldset>
+      </div>
+
+      <details class="mt-6 max-w-xl">
+        <summary class="eyebrow inline-flex min-h-11 cursor-pointer items-center text-brand/75 hover:text-brand">
+          Allergens &amp; dietary
+        </summary>
+        <div class="mt-4 rounded-2xl border border-brand/15 bg-paper-sunk/50 p-5">
+          <p class="text-[15px] text-ink/75">
+            Hide anything containing these. Everything is made in a bar that also handles
+            nuts, dairy and gluten, so we cannot promise no trace — if it matters, tell us
+            and we will talk it through.
+          </p>
+          <fieldset class="mt-4 flex flex-wrap gap-3">
+            <legend class="sr-only">Hide drinks containing</legend>
+            {ALLERGENS.map((allergen) => (
+              <>
+                <input type="checkbox" id={`al-${allergen}`} value={allergen} data-allergen-filter class="sr-only" />
+                <label for={`al-${allergen}`} class="chip hover:border-brand/60">No {allergen.toLowerCase()}</label>
+              </>
+            ))}
+          </fieldset>
+        </div>
+      </details>
+
+      <p class="data mt-6 text-ink/70" data-count role="status" aria-live="polite"></p>
+
+      <div class="mt-10 space-y-20" data-results>
+        {groups.map((group, i) => (
+          <section data-group={group.category} aria-labelledby={`group-${i}`}>
+            <div id={`group-${i}`}>
+              <SectionHead label={group.category} index={String(group.items.length).padStart(2, '0')} />
+            </div>
+            <ul class="grid gap-x-16 md:grid-cols-2" data-list>
+              {group.items.map((drink) => <DrinkRow drink={drink} />)}
+            </ul>
+          </section>
+        ))}
+      </div>
+
+      <p class="mt-16 hidden text-ink/75" data-no-results>
+        Nothing matches that. <button type="button" data-reset class="text-brand underline decoration-brand/30 underline-offset-4 hover:decoration-brand">Clear the filters</button> and start again.
+      </p>
+    </div>
+  </div>
+
+  <section id="visit" class="bg-brand-dk text-paper">
+    <div class="mx-auto grid max-w-page gap-12 px-6 py-20 md:grid-cols-2 md:px-10 md:py-28">
+      <div>
+        <p class="eyebrow text-paper/70">Visit</p>
+        <h2 class="mt-6 font-display text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.1] uppercase">
+          14 Alder Lane
+        </h2>
+        <p class="mt-5 max-w-sm text-paper/70">
+          Two minutes from Goodge Street. The door is unmarked and dark green — that is on
+          purpose, and we are sorry.
+        </p>
+        <a href="/contact" class="btn btn-primary mt-8">Directions <span aria-hidden="true">&rarr;</span></a>
+      </div>
+      <div class="md:justify-self-end">
+        <OpenNow variant="block" class="text-paper [&_dt]:text-paper/85 [&_dd]:text-paper/70 [&_[data-open-text]]:text-paper" />
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const scope = document.querySelector('[data-filters]');
+    const items = [...scope.querySelectorAll('li[data-cat]')];
+    const sections = [...scope.querySelectorAll('section[data-group]')];
+    const search = scope.querySelector('[data-search]');
+    const sort = scope.querySelector('[data-sort]');
+    const countEl = scope.querySelector('[data-count]');
+    const noResults = scope.querySelector('[data-no-results]');
+    const firstList = scope.querySelector('[data-list]');
+
+    // Remember where each row lives so "menu order" can put it back.
+    for (const item of items) item._home = item.parentElement;
+
+    const checked = (selector) =>
+      new Set([...scope.querySelectorAll(selector)].filter((i) => i.checked).map((i) => i.value));
+
+    function apply() {
+      const cats = checked('[data-cat-filter]');
+      const avoid = checked('[data-allergen-filter]');
+      const newOnly = scope.querySelector('[data-new-filter]').checked;
+      const q = search.value.trim().toLowerCase();
+      const mode = sort.value;
+
+      let shown = 0;
+      for (const item of items) {
+        const allergens = (item.dataset.allergens || '').split(',').filter(Boolean);
+        const ok =
+          (cats.size === 0 || cats.has(item.dataset.cat)) &&
+          (!newOnly || item.hasAttribute('data-new')) &&
+          ![...avoid].some((a) => allergens.includes(a)) &&
+          (q === '' || item.textContent.toLowerCase().includes(q));
+        item.hidden = !ok;
+        if (ok) shown++;
+      }
+
+      // Sorting flattens the category groups — "cheapest first" only means
+      // something across the whole list, not inside each heading.
+      if (mode === 'menu') {
+        for (const item of items) item._home.append(item);
+        for (const section of sections) section.hidden = !items.some((i) => i._home === i.parentElement && !i.hidden && i.closest('section') === section);
+      } else {
+        const visible = items.filter((i) => !i.hidden);
+        const by = {
+          'price-asc': (a, b) => a.dataset.price - b.dataset.price,
+          'price-desc': (a, b) => b.dataset.price - a.dataset.price,
+          name: (a, b) => a.dataset.name.localeCompare(b.dataset.name),
+        }[mode];
+        for (const item of [...visible].sort(by)) firstList.append(item);
+        for (const section of sections) section.hidden = section !== sections[0];
+        sections[0].querySelector('[id^=group-]').hidden = true;
+      }
+      if (mode === 'menu') sections[0].querySelector('[id^=group-]').hidden = false;
+
+      countEl.textContent =
+        shown === items.length ? `All ${items.length} drinks` : `Showing ${shown} of ${items.length} drinks`;
+      noResults.classList.toggle('hidden', shown > 0);
+    }
+
+    scope.addEventListener('input', apply);
+    scope.addEventListener('change', apply);
+    for (const reset of scope.querySelectorAll('[data-reset]')) {
+      reset.addEventListener('click', () => {
+        for (const input of scope.querySelectorAll('input[type=checkbox]')) input.checked = false;
+        search.value = '';
+        sort.value = 'menu';
+        apply();
+      });
+    }
+    apply();
+  </script>
+</Base>

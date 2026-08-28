@@ -1,0 +1,17 @@
+{
+  "name": "cellar-and-vine",
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "astro dev",
+    "dev:mobile": "astro dev --host",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check:hours": "node src/lib/hours.check.mjs"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

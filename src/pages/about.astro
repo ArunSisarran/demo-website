@@ -1,0 +1,137 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import aboutHero from '../assets/scenes/about-hero.jpg';
+import aboutRoom from '../assets/scenes/about-room.jpg';
+
+const process = [
+  {
+    step: '01',
+    title: 'Maceration',
+    body: 'Bitters and shrubs start upstairs in five-litre jars. Orange peel, gentian, celery leaf, whatever the market had. Eleven days, tasted daily, bottled when it stops changing.',
+  },
+  {
+    step: '02',
+    title: 'Sourcing',
+    body: 'Eight growers, all under two hectares, most of them working without a distributor. We buy what they made, not what we asked for — which is why the list moves.',
+  },
+  {
+    step: '03',
+    title: 'Service',
+    body: 'Stirred, not shaken, unless the drink genuinely needs air. Poured at the temperature it is supposed to be. Nobody is rushed toward a second.',
+  },
+];
+---
+
+<Base
+  title="About — Cellar & Vine"
+  description="A fourteen-seat bar in a former wine merchant's storeroom. How we make what we make, and why the list is short."
+  ogImage="/og/about.jpg"
+>
+  <section class="px-4 pt-4 md:px-6">
+    <div class="relative overflow-hidden rounded-3xl border border-paper/10 bg-brand-dk">
+      <Image
+        src={aboutHero}
+        alt="Shelves of wine bottles running the length of the room"
+        widths={[480, 800, 1100, 1400, 1800, 2100]}
+        sizes="100vw"
+        class="absolute inset-0 h-full w-full object-cover"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-brand-dk/95 via-brand-dk/65 to-brand-dk/40"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-brand-dk/90 via-brand-dk/45 to-transparent"
+        aria-hidden="true"
+      ></div>
+      <div class="relative mx-auto flex min-h-[46vh] max-w-page flex-col justify-end px-6 py-16 md:px-10 md:py-20">
+        <p class="eyebrow text-paper/70">Since 2019</p>
+        <h1 class="mt-6 font-display text-[clamp(2.25rem,7vw,4.5rem)] leading-[1.05] text-paper uppercase">
+          <span class="stroke block">Eleven Seats,</span>
+          <span class="block">Then Fourteen.</span>
+        </h1>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-page px-6 py-24 md:px-10 md:py-32">
+    <div class="grid gap-14 md:grid-cols-[1fr_1.1fr] md:gap-20">
+      <div>
+        <div class="flex items-center gap-4">
+          <span class="h-px w-10 bg-brand/40"></span>
+          <p class="eyebrow text-brand/75">The room</p>
+        </div>
+        <h2 class="mt-8 text-brand">
+          <span class="block font-display text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.05] uppercase">A storeroom</span>
+          <span class="block font-body text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.05] italic">that kept its shelves</span>
+        </h2>
+      </div>
+
+      <div class="max-w-prose space-y-5 text-ink/75">
+        <p>
+          The building spent sixty years as a wine merchant's, and the back room where they
+          kept stock is now the bar. We took out the racking, kept the shelves, and put
+          eleven stools where the crates had been.
+        </p>
+        <p>
+          Three more went in the year after, which is as far as the fire officer will let
+          us go. Ten of the fourteen are held for people who simply walk in, because a bar
+          that is entirely booked out stops being a bar.
+        </p>
+        <p>
+          There is no music policy, no cocktail menu longer than this page, and no house
+          spirit we would not drink ourselves.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-paper-sunk/50">
+    <div class="mx-auto max-w-page px-6 py-24 md:px-10 md:py-32">
+      <div class="flex items-center gap-4">
+        <span class="h-px w-10 bg-brand/40"></span>
+        <p class="eyebrow text-brand/75">How it's made</p>
+      </div>
+
+      <ol class="mt-14 grid gap-12 md:grid-cols-3">
+        {process.map((item) => (
+          <li data-reveal>
+            <p class="data text-brand/70">{item.step}</p>
+            <h3 class="mt-4 font-display text-xl tracking-[0.05em] text-brand uppercase">{item.title}</h3>
+            <p class="mt-4 text-ink/75">{item.body}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-page px-6 py-24 md:px-10 md:py-32">
+    <div class="grid gap-14 md:grid-cols-2 md:items-center">
+      <Image
+        src={aboutRoom}
+        alt="Bar prep station with cut limes, glasses and tools"
+        widths={[480, 800, 1200]}
+        sizes="(min-width: 768px) 46vw, 92vw"
+        class="aspect-4/5 w-full rounded-3xl object-cover md:aspect-3/4"
+        loading="lazy"
+      />
+      <div>
+        <h2 class="font-display text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.05] text-brand uppercase">
+          Come in early
+        </h2>
+        <p class="mt-6 max-w-prose text-ink/75">
+          Between four and six the room is quiet, the light is good, and whoever is behind
+          the bar has time to talk about what they are making. It is the best hour of the
+          day and almost nobody uses it.
+        </p>
+        <div class="mt-10 flex flex-wrap gap-6">
+          <a href="/menu" class="btn btn-primary">See the menu <span aria-hidden="true">&rarr;</span></a>
+          <a href="/reserve" class="btn btn-ghost">Hold a seat</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

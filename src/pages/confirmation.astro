@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Order received — Cellar & Vine" description="Your demo order summary.">
+  <div class="mx-auto max-w-prose px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+    <p class="eyebrow text-brand/75">Confirmed</p>
+
+    <h1 class="mt-6 font-display text-[clamp(2.25rem,6vw,4rem)] leading-[1.05] text-brand uppercase">
+      <span class="stroke block">That's</span>
+      <span class="block">Behind the Bar.</span>
+    </h1>
+
+    <p class="mt-6 text-ink/75" data-greeting>Thank you.</p>
+
+    <div class="mt-12 rounded-3xl border border-brand/15 bg-paper-sunk/60 p-8" data-receipt hidden>
+      <div class="flex items-baseline justify-between gap-6">
+        <p class="eyebrow text-brand/75">Reference</p>
+        <p class="data text-base text-brand" data-reference></p>
+      </div>
+
+      <div class="mt-6 rounded-2xl border border-brand/15 bg-paper p-5">
+        <p class="eyebrow text-brand/75">Collect from</p>
+        <p class="mt-2 text-ink/75">14 Alder Lane, Fitzrovia, London W1T</p>
+        <p class="mt-1 font-display text-lg tracking-[0.05em] text-brand uppercase" data-collect-when></p>
+        <p class="mt-2 text-[15px] text-ink/75">Held for an hour after that. The door is unmarked and dark green.</p>
+        <a
+          class="btn btn-ghost mt-5"
+          href="https://www.openstreetmap.org/?mlat=51.5205&mlon=-0.1370#map=18/51.5205/-0.1370"
+          target="_blank"
+          rel="noopener"
+        >
+          Directions <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+
+      <ul class="mt-8 space-y-4 border-t border-brand/15 pt-6" data-lines></ul>
+
+      <div class="mt-6 flex justify-between gap-6 border-t border-brand/15 pt-6">
+        <p class="font-display text-lg tracking-[0.05em] text-brand uppercase">Total</p>
+        <p class="data text-lg text-brand" data-total></p>
+      </div>
+    </div>
+
+    <p class="mt-10 text-ink/75" data-fallback hidden>
+      There is no recent order in this browser. That is what happens on a refresh — the
+      receipt lives in the tab, not on a server.
+    </p>
+
+    <p class="data mt-10 text-[11px] text-ink/70">
+      Demo — no payment was taken and no order was placed.
+    </p>
+
+    <div class="mt-10 flex flex-wrap gap-6">
+      <a href="/menu" class="btn btn-ghost">Back to the menu</a>
+    </div>
+  </div>
+
+  <script>
+    import { money } from '../scripts/cart.js';
+
+    const raw = sessionStorage.getItem('cv-order');
+    const receipt = document.querySelector('[data-receipt]');
+    const fallback = document.querySelector('[data-fallback]');
+
+    if (!raw) {
+      fallback.hidden = false;
+    } else {
+      const order = JSON.parse(raw);
+      receipt.hidden = false;
+      document.querySelector('[data-greeting]').textContent =
+        `Thanks, ${order.name.split(' ')[0]}. A copy is on its way to ${order.email} — or it would be, if this were a real bar.`;
+      document.querySelector('[data-reference]').textContent = order.reference;
+      const when = document.querySelector('[data-collect-when]');
+      if (order.date && order.slot) {
+        const day = new Date(order.date + 'T12:00:00').toLocaleDateString('en-GB', {
+          weekday: 'long', day: 'numeric', month: 'long',
+        });
+        when.textContent = `${day} at ${order.slot}`;
+      } else {
+        when.hidden = true;
+      }
+      document.querySelector('[data-total]').textContent = money(order.total);
+      document.querySelector('[data-lines]').innerHTML = order.items
+        .map((item) => `
+          <li class="flex justify-between gap-4">
+            <span class="text-ink/75">${item.name} <span class="data text-ink/70">×${item.qty}</span></span>
+            <span class="data text-brand">${money(item.line)}</span>
+          </li>`)
+        .join('');
+    }
+  </script>
+</Base>

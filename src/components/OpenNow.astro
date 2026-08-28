@@ -1,0 +1,62 @@
+---
+import { HOURS_ROWS } from '../lib/hours';
+
+interface Props {
+  /** 'badge' sits in the header; 'block' is the fuller panel with hours. */
+  variant?: 'badge' | 'block';
+  class?: string;
+}
+const { variant = 'badge', class: className = '' } = Astro.props;
+---
+
+{variant === 'badge' ? (
+  <p class:list={['flex items-center gap-2', className]} data-open-now hidden>
+    <span class="grid h-2 w-2 place-items-center rounded-full" data-open-dot></span>
+    <span class="eyebrow" data-open-text></span>
+  </p>
+) : (
+  <div class:list={[className]}>
+    <p class="flex items-center gap-2.5" data-open-now hidden>
+      <span class="grid h-2.5 w-2.5 place-items-center rounded-full" data-open-dot></span>
+      <span class="eyebrow" data-open-text></span>
+    </p>
+    <dl class="mt-5 space-y-2 text-[15px]">
+      {HOURS_ROWS.map((row) => (
+        <div class="flex justify-between gap-6" data-hours-row={row.label}>
+          <dt class="text-ink/75">{row.label}</dt>
+          <dd class="data text-ink/70">{row.time}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+)}
+
+<script>
+  import { openState } from '../lib/hours';
+
+  // Rendered client-side: a static build can't know what time it is for you.
+  function paint() {
+    const state = openState();
+    for (const host of document.querySelectorAll('[data-open-now]')) {
+      const dot = host.querySelector('[data-open-dot]');
+      const text = host.querySelector('[data-open-text]');
+      if (state.open) {
+        const soon = state.minutesLeft <= 60;
+        dot.className = dot.className.replace(/bg-\S+/g, '') + (soon ? ' bg-accent' : ' bg-success');
+        text.textContent = soon
+          ? `Closing at ${state.closesAt} · last orders ${state.lastOrders}`
+          : `Open now · until ${state.closesAt}`;
+      } else {
+        dot.className = dot.className.replace(/bg-\S+/g, '') + ' bg-ink/30';
+        text.textContent = state.today
+          ? `Closed · opens today at ${state.opensAt}`
+          : `Closed · opens ${state.opensDay} at ${state.opensAt}`;
+      }
+      host.hidden = false;
+    }
+  }
+
+  paint();
+  // Keep it honest across a long-open tab.
+  setInterval(paint, 60_000);
+</script>

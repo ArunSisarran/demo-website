@@ -1,0 +1,162 @@
+---
+import { getImage } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import CartBar from '../components/CartBar.astro';
+import CartDrawer from '../components/CartDrawer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Home lays a dark hero under a transparent header; inner pages don't. */
+  transparentHeader?: boolean;
+  /** Link-preview image, absolute path under /og. */
+  ogImage?: string;
+  /** Shows the thumb-reachable cart bar on small screens. */
+  cartBar?: boolean;
+  /** The cart and checkout pages ARE the cart; they don't need the drawer. */
+  cartDrawer?: boolean;
+}
+
+const {
+  title,
+  description,
+  transparentHeader = false,
+  ogImage = '/og/default.jpg',
+  cartBar = false,
+  cartDrawer = true,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+
+// One catalog for the whole site: the cart, the checkout summary, and the
+// sticky mobile bar all read this rather than each emitting their own copy.
+const drinks = await getCollection('drinks');
+const catalog = Object.fromEntries(
+  await Promise.all(
+    drinks.map(async (d) => {
+      const thumb = await getImage({ src: d.data.image, width: 128, height: 160, format: 'webp' });
+      return [d.id, {
+        name: d.data.name,
+        price: d.data.price,
+        abv: d.data.abv ?? '',
+        thumb: thumb.src,
+        alt: d.data.alt,
+      }];
+    }),
+  ),
+);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Cellar & Vine" />
+    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={description} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#12261f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {/* Only the two faces that paint above the fold are preloaded. */}
+    <link rel="preload" href="/fonts/ArchivoBlack-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Jost-400.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="eyebrow sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-full focus:bg-paper focus:px-5 focus:py-3 focus:text-brand"
+    >
+      Skip to content
+    </a>
+    <Header transparent={transparentHeader} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    {cartBar && <CartBar />}
+    {cartDrawer && <CartDrawer />}
+
+    <script type="application/json" id="catalog" set:html={JSON.stringify(catalog)}></script>
+
+    {/* Cart count is announced, not just colored. */}
+    <p class="sr-only" role="status" aria-live="polite" data-cart-announce></p>
+
+    <script>
+      import { add, count, read } from '../scripts/cart.js';
+      import { bindLineControls } from '../scripts/cart-render.js';
+
+      bindLineControls();
+
+      const paint = () => {
+        const n = count();
+        document.querySelectorAll('[data-cart-count]').forEach((badge) => {
+          badge.textContent = String(n);
+          badge.toggleAttribute('hidden', n === 0);
+        });
+
+        // A row you've already added shows a stepper instead of "Add", so you
+        // can adjust the quantity without opening anything.
+        const cart = read();
+        document.querySelectorAll('[data-row-controls]').forEach((row) => {
+          const slug = row.dataset.rowControls;
+          const qty = cart[slug] || 0;
+          const button = row.querySelector('[data-add]');
+          const stepper = row.querySelector('[data-row-qty]');
+          if (!button || !stepper) return;
+          button.hidden = qty > 0;
+          stepper.hidden = qty === 0;
+          const value = stepper.querySelector(`[data-qty-for="${slug}"]`);
+          if (value) value.textContent = String(qty);
+        });
+      };
+
+      // One delegated listener covers every Add button on every page.
+      document.addEventListener('click', (event) => {
+        const button = event.target instanceof Element && event.target.closest('[data-add]');
+        if (!(button instanceof HTMLElement)) return;
+        add(button.dataset.add);
+        const announce = document.querySelector('[data-cart-announce]');
+        if (announce) announce.textContent = `Added to cart. ${count()} items.`;
+      });
+
+      document.addEventListener('cart:change', paint);
+      paint();
+    </script>
+
+    <script>
+      // Fade + 16px rise, once, staggered across siblings. The hiding CSS is
+      // gated on this attribute, so without JS everything is simply visible.
+      const targets = document.querySelectorAll('[data-reveal]');
+      if (targets.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.setAttribute('data-reveal-ready', '');
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-in');
+              observer.unobserve(entry.target);
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px' },
+        );
+        for (const target of targets) {
+          const siblings = [...target.parentElement.querySelectorAll(':scope > [data-reveal]')];
+          target.style.transitionDelay = `${Math.min(siblings.indexOf(target), 5) * 60}ms`;
+          observer.observe(target);
+        }
+      }
+    </script>
+  </body>
+</html>

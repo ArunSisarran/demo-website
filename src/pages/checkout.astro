@@ -1,0 +1,166 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Field from '../components/Field.astro';
+
+const drinks = await getCollection('drinks');
+const catalog = Object.fromEntries(
+  drinks.map((d) => [d.id, { name: d.data.name, price: d.data.price }]),
+);
+---
+
+<Base
+  title="Checkout — Cellar & Vine"
+  description="Complete your demo order. No payment is taken."
+  cartDrawer={false}
+>
+  <div class="mx-auto max-w-page px-6 pt-16 pb-24 md:px-10 md:pt-24 md:pb-32">
+    <a href="/cart" class="eyebrow text-brand/75 transition-colors hover:text-brand">
+      <span aria-hidden="true">&larr;</span> Back to the cart
+    </a>
+
+    <h1 class="mt-10 text-brand">
+      <span class="block font-body text-[clamp(2rem,5vw,3.5rem)] leading-none italic">Nearly</span>
+      <span class="block font-display text-[clamp(2.5rem,7vw,5rem)] leading-[0.95] uppercase">Poured</span>
+    </h1>
+
+    <div class="mt-8 max-w-2xl rounded-2xl border border-brand/15 bg-paper-sunk/50 p-6">
+      <p class="eyebrow text-brand/75">How this works</p>
+      <p class="mt-3 text-ink/75">
+        <strong class="font-medium text-brand">We do not deliver.</strong> You order here,
+        pick a time, and collect at the bar — 14 Alder Lane, Fitzrovia. Cocktails are made
+        when you arrive so they are not sitting on ice for an hour; bottles are ready from
+        the moment you pick.
+      </p>
+      <p class="data mt-4 text-[11px] text-ink/70">
+        Demo — no charge is taken and no card details are sent anywhere.
+      </p>
+    </div>
+
+    <div class="mt-14 grid gap-16 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+      <form novalidate data-checkout class="space-y-10">
+        <fieldset class="space-y-6">
+          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">Who it's for</legend>
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label="Full name" name="name" required autocomplete="name" />
+            <Field label="Email" name="email" type="email" required autocomplete="email" inputmode="email" />
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-6">
+          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">When you'll collect</legend>
+          <p class="text-[15px] text-ink/75">
+            Only the hours we are actually open show up here. Orders are held for an hour
+            past the slot you pick.
+          </p>
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label="Collection date" name="date" type="date" required />
+            <div>
+              <label class="field-label" for="f-slot">Collection time</label>
+              <select id="f-slot" name="slot" required class="field-input mt-2">
+                <option value="">Pick a date first</option>
+              </select>
+              <p class="field-error mt-1.5" aria-live="polite"></p>
+            </div>
+          </div>
+          <Field label="Phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel"
+                 hint="So we can call you if something on your order has run out." />
+        </fieldset>
+
+        <fieldset class="space-y-6">
+          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">Payment</legend>
+          <p class="text-[15px] text-ink/75">
+            This form is not connected to a payment processor. Type anything — nothing is
+            transmitted, stored, or charged.
+          </p>
+          <Field
+            label="Card number" name="card" required inputmode="numeric"
+            pattern="[0-9 ]{12,23}" placeholder="4242 4242 4242 4242"
+            hint="Any 12–19 digits will do."
+          />
+          <div class="grid gap-6 sm:grid-cols-2">
+            <Field label="Expiry" name="expiry" required placeholder="MM/YY" pattern="(0[1-9]|1[0-2])\/[0-9]{2}" />
+            <Field label="Security code" name="cvc" required inputmode="numeric" pattern="[0-9]{3,4}" />
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">
+          Place demo order
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </form>
+
+      <aside class="rounded-3xl border border-brand/15 bg-paper-sunk/60 p-8">
+        <p class="eyebrow text-brand/75">Your round</p>
+        <ul class="mt-6 space-y-4" data-lines></ul>
+        <div class="mt-6 flex justify-between gap-6 border-t border-brand/15 pt-6">
+          <p class="font-display text-lg tracking-[0.05em] text-brand uppercase">Total</p>
+          <p class="data text-lg text-brand" data-total>£0.00</p>
+        </div>
+        <p class="mt-6 text-[15px] text-ink/75" data-empty hidden>
+          Your cart is empty. <a class="text-brand underline decoration-brand/30 underline-offset-4" href="/menu">Pick something first</a>.
+        </p>
+      </aside>
+    </div>
+  </div>
+
+
+  <script>
+    import { read, clear, subtotal, money } from '../scripts/cart.js';
+    import { enhance } from '../scripts/forms.js';
+    import { bindSlots, todayISO } from '../scripts/slots.js';
+
+    const catalog = JSON.parse(document.getElementById('catalog').textContent);
+    const form = document.querySelector('[data-checkout]');
+    const lines = document.querySelector('[data-lines]');
+
+    function render() {
+      const cart = read();
+      const slugs = Object.keys(cart).filter((slug) => catalog[slug]);
+      lines.innerHTML = slugs
+        .map((slug) => `
+          <li class="flex justify-between gap-4">
+            <span class="text-ink/75">${catalog[slug].name} <span class="data text-ink/70">×${cart[slug]}</span></span>
+            <span class="data text-brand">${money(catalog[slug].price * cart[slug])}</span>
+          </li>`)
+        .join('');
+      document.querySelector('[data-total]').textContent = money(subtotal(cart, catalog));
+      document.querySelector('[data-empty]').hidden = slugs.length > 0;
+      form.querySelector('button[type=submit]').disabled = slugs.length === 0;
+    }
+
+    enhance(form);
+
+    // Collection times come from the opening hours, so you can't pick 3pm on a
+    // Monday when the door doesn't open until four.
+    const dateInput = form.elements.date;
+    dateInput.min = todayISO();
+    bindSlots(dateInput, form.elements.slot);
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) return; // enhance() has already flagged the fields.
+
+      const cart = read();
+      const items = Object.keys(cart)
+        .filter((slug) => catalog[slug])
+        .map((slug) => ({ name: catalog[slug].name, qty: cart[slug], line: catalog[slug].price * cart[slug] }));
+      if (items.length === 0) return;
+
+      // Snapshot the order so /confirmation can show it after the cart is emptied.
+      sessionStorage.setItem('cv-order', JSON.stringify({
+        reference: 'CV-' + Math.random().toString(36).slice(2, 7).toUpperCase(),
+        name: form.elements.name.value,
+        email: form.elements.email.value,
+        date: form.elements.date.value,
+        slot: form.elements.slot.value,
+        items,
+        total: subtotal(cart, catalog),
+      }));
+      clear();
+      location.href = '/confirmation';
+    });
+
+    render();
+  </script>
+</Base>

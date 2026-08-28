@@ -1,0 +1,42 @@
+---
+// Thumb-reachable cart summary. Small screens only — the header cart is always
+// visible on desktop. Renders nothing until there is something in the cart.
+---
+
+<div
+  data-cart-bar
+  hidden
+  class="fixed inset-x-0 bottom-0 z-40 border-t border-paper/15 bg-brand-dk/95 backdrop-blur-sm md:hidden"
+  style="padding-bottom: env(safe-area-inset-bottom)"
+>
+  <div class="flex items-center gap-4 px-5 py-3">
+    <p class="flex-1 text-paper">
+      <span class="data text-paper/70" data-bar-count>0 items</span><br />
+      <span class="data text-base text-paper" data-bar-total>£0.00</span>
+    </p>
+    <a href="/cart" data-cart-link class="btn btn-primary">
+      View cart
+      <span aria-hidden="true">&rarr;</span>
+    </a>
+  </div>
+</div>
+
+<script>
+  import { read, count, subtotal, money } from '../scripts/cart.js';
+
+  const bar = document.querySelector('[data-cart-bar]');
+  const catalog = JSON.parse(document.getElementById('catalog').textContent);
+
+  function paint() {
+    const cart = read();
+    const n = count(cart);
+    bar.hidden = n === 0;
+    document.querySelector('[data-bar-count]').textContent = `${n} item${n === 1 ? '' : 's'}`;
+    document.querySelector('[data-bar-total]').textContent = money(subtotal(cart, catalog));
+    // Keep the last row clear of the bar.
+    document.body.style.paddingBottom = n === 0 ? '' : '5.5rem';
+  }
+
+  document.addEventListener('cart:change', paint);
+  paint();
+</script>

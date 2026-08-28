@@ -1,0 +1,124 @@
+---
+import Base from '../layouts/Base.astro';
+import Field from '../components/Field.astro';
+import OpenNow from '../components/OpenNow.astro';
+
+const reasons = ['General enquiry', 'Private hire', 'Press', 'Suppliers', 'Something went wrong'];
+const MAP =
+  'https://www.openstreetmap.org/export/embed.html?bbox=-0.1420%2C51.5180%2C-0.1320%2C51.5230&layer=mapnik&marker=51.5205%2C-0.1370';
+---
+
+<Base
+  title="Contact — Cellar & Vine"
+  description="Where we are, when we're open, and how to reach us. Fitzrovia, London W1T."
+>
+  <div class="mx-auto max-w-page px-6 pt-16 pb-24 md:px-10 md:pt-24 md:pb-32">
+    <div class="flex items-center gap-4">
+      <span class="h-px w-10 bg-brand/40"></span>
+      <p class="eyebrow text-brand/75">Contact</p>
+    </div>
+
+    <div class="mt-10 grid gap-12 md:grid-cols-[1.1fr_1fr] md:items-end">
+      <h1 class="text-brand">
+        <span class="block font-body text-[clamp(2.5rem,7vw,5rem)] leading-none italic">Say</span>
+        <span class="block font-display text-[clamp(2.5rem,8vw,5.5rem)] leading-[0.95] uppercase">Hello</span>
+      </h1>
+      <p class="border-l-2 border-accent pl-6 text-ink/75">
+        The door is unmarked and dark green, two minutes from Goodge Street. That is on
+        purpose, and we are sorry.
+      </p>
+    </div>
+
+    <div class="mt-16 grid gap-16 lg:grid-cols-[1.3fr_1fr] lg:items-start">
+      <form
+        name="contact"
+        method="POST"
+        action="/thanks"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+        novalidate
+        data-validate
+        class="space-y-8"
+      >
+        <input type="hidden" name="form-name" value="contact" />
+        <p hidden>
+          <label>Leave this empty: <input name="bot-field" /></label>
+        </p>
+
+        <div class="grid gap-6 sm:grid-cols-2">
+          <Field label="Name" name="name" required autocomplete="name" />
+          <Field label="Email" name="email" type="email" required autocomplete="email" inputmode="email" />
+        </div>
+
+        <Field label="What's it about" name="reason" options={reasons} required class="sm:max-w-sm" />
+        <Field label="Message" name="message" rows={6} required />
+
+        <button type="submit" class="btn btn-primary">
+          Send it
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+
+        <p class="data text-[11px] text-ink/70">Demo — this posts to a form handler and reaches nobody.</p>
+      </form>
+
+      <aside class="space-y-10">
+        <div>
+          <p class="eyebrow text-brand/75">Find us</p>
+          <address class="mt-5 text-lg not-italic text-ink/75">
+            14 Alder Lane<br />Fitzrovia<br />London W1T
+          </address>
+
+          <div class="mt-5 rounded-2xl border border-accent/40 bg-accent/10 p-4">
+            <p class="text-[15px] text-ink/75">
+              <strong class="font-medium text-brand">The door is unmarked and dark green</strong>,
+              between the newsagent and the dry cleaner. Two minutes from Goodge Street,
+              five from Tottenham Court Road.
+            </p>
+          </div>
+
+          <div class="mt-5 flex flex-wrap gap-3">
+            <a
+              class="btn btn-ghost"
+              href="https://www.openstreetmap.org/?mlat=51.5205&mlon=-0.1370#map=18/51.5205/-0.1370"
+              target="_blank"
+              rel="noopener"
+            >
+              Open in maps <span aria-hidden="true">&rarr;</span>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <p class="eyebrow text-brand/75">Direct</p>
+          <ul class="mt-5 space-y-2">
+            <li><a class="text-brand underline decoration-brand/30 underline-offset-4 hover:decoration-brand" href="mailto:hello@cellarandvine.test">hello@cellarandvine.test</a></li>
+            <li><a class="text-brand underline decoration-brand/30 underline-offset-4 hover:decoration-brand" href="tel:+442071234567">+44 20 7123 4567</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <p class="eyebrow text-brand/75">Hours</p>
+          <OpenNow variant="block" class="mt-4" />
+        </div>
+      </aside>
+    </div>
+
+    <div class="mt-20 overflow-hidden rounded-3xl border border-brand/15">
+      <iframe
+        title="Map showing Cellar &amp; Vine in Fitzrovia, London"
+        src={MAP}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        class="h-[420px] w-full"
+      ></iframe>
+    </div>
+    <p class="data mt-3 text-[11px] text-ink/70">
+      Map: OpenStreetMap contributors. The address is fictional.
+    </p>
+  </div>
+
+  <script>
+    import { enhance } from '../scripts/forms.js';
+    enhance(document.querySelector('[data-validate]'));
+  </script>
+</Base>

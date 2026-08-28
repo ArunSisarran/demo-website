@@ -1,0 +1,51 @@
+---
+interface Props {
+  label: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+  autocomplete?: string;
+  inputmode?: string;
+  placeholder?: string;
+  hint?: string;
+  value?: string;
+  min?: string;
+  max?: string;
+  pattern?: string;
+  rows?: number;
+  /** Renders a <select> instead of an <input>. */
+  options?: string[];
+  class?: string;
+}
+const {
+  label, name, type = 'text', required = false, autocomplete, inputmode,
+  placeholder, hint, value, min, max, pattern, rows, options, class: className = '',
+} = Astro.props;
+const id = `f-${name}`;
+---
+
+<div class={className}>
+  <label class="field-label" for={id}>
+    {label}{!required && <span class="text-ink/70"> (optional)</span>}
+  </label>
+
+  {options ? (
+    <select id={id} name={name} required={required} class="field-input mt-2">
+      {options.map((option) => <option value={option}>{option}</option>)}
+    </select>
+  ) : rows ? (
+    <textarea
+      id={id} name={name} rows={rows} required={required}
+      placeholder={placeholder} class="field-input mt-2"
+    >{value}</textarea>
+  ) : (
+    <input
+      id={id} name={name} type={type} required={required}
+      autocomplete={autocomplete} inputmode={inputmode} placeholder={placeholder}
+      value={value} min={min} max={max} pattern={pattern} class="field-input mt-2"
+    />
+  )}
+
+  {hint && <p class="mt-1.5 text-[13px] text-ink/70">{hint}</p>}
+  <p class="field-error mt-1.5" aria-live="polite"></p>
+</div>

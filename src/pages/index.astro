@@ -1,0 +1,191 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import heroImage from '../assets/scenes/hero.jpg';
+import storyImage from '../assets/scenes/story.jpg';
+import Base from '../layouts/Base.astro';
+import DrinkRow from '../components/DrinkRow.astro';
+
+const drinks = await getCollection('drinks');
+const featured = drinks
+  .filter((d) => d.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+
+// Demo content. No real customers exist — labeled as such below, per PRODUCT.md.
+const quotes = [
+  { text: 'The only bar in London where nobody has ever rushed me.', who: 'Nadia K.' },
+  { text: 'I came for one glass on a Tuesday and stayed until they turned the lights up.', who: 'Tom R.' },
+  { text: 'They remember what you drank last time. That is the whole trick.', who: 'Priya S.' },
+];
+---
+
+<Base
+  title="Cellar & Vine — Small-batch cocktails and low-intervention wine in Fitzrovia"
+  description="A small Fitzrovia bar pouring house-macerated cocktails, low-intervention wine, and zero-proof drinks worth ordering. Menu, hours, and how to find us."
+  ogImage="/og/default.jpg"
+  transparentHeader
+>
+  <section class="px-4 pb-6 md:px-6">
+    <div class="relative -mt-[76px] overflow-hidden rounded-3xl border border-paper/10 bg-brand-dk pt-[76px]">
+      <Image
+        src={heroImage}
+        alt="Amber cocktail on the bar top with bottles glowing behind it"
+        widths={[480, 800, 1100, 1400, 1800, 2100]}
+        sizes="100vw"
+        class="absolute inset-0 h-full w-full object-cover"
+        loading="eager"
+        fetchpriority="high"
+      />
+      {/* Scrim: the headline has to hold at 7:1 over whatever the photo does. */}
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-brand-dk/95 via-brand-dk/65 to-brand-dk/35"
+        aria-hidden="true"
+      ></div>
+      {/* Second scrim across the text column, so the headline never sits on
+          whatever the photograph happens to be doing on the left. */}
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-brand-dk/90 via-brand-dk/45 to-transparent"
+        aria-hidden="true"
+      ></div>
+      <div class="relative mx-auto flex min-h-[76vh] max-w-page flex-col justify-end px-6 pt-24 pb-16 md:px-10 md:pb-24">
+        <p class="eyebrow text-paper/70">Fitzrovia, London</p>
+
+        <h1 class="mt-6 font-display text-[clamp(2.25rem,7.5vw,4.5rem)] leading-[1.05] text-paper uppercase">
+          <span class="stroke block">Small-Batch Pours.</span>
+          <span class="block">Fitzrovia Evenings.</span>
+        </h1>
+
+        <p class="mt-7 max-w-lg text-paper/80">
+          Everything bitter is macerated upstairs. Everything sparkling was made by
+          someone we have met. <strong class="font-medium text-paper">Open until late</strong>,
+          later on Fridays.
+        </p>
+
+        <div class="mt-10 flex flex-wrap items-center gap-7">
+          <a href="/menu" class="btn btn-primary">
+            See the menu
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a
+            href="#story"
+            class="eyebrow border-b border-paper/20 pb-0.5 text-paper/70 transition-colors hover:border-paper/55 hover:text-paper"
+          >
+            About the bar
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pours" class="mx-auto max-w-page px-6 py-24 md:px-10 md:py-32">
+    <div class="flex items-center gap-4">
+      <span class="h-px w-10 bg-brand/40"></span>
+      <p class="eyebrow text-brand/75">The list</p>
+    </div>
+
+    <div data-reveal class="mt-10 grid gap-12 md:grid-cols-[1.1fr_1fr] md:items-end">
+      <h2 class="text-brand">
+        <span class="block font-body text-[clamp(2.5rem,7vw,6rem)] leading-none italic">The</span>
+        <span class="block font-display text-[clamp(3rem,9vw,6rem)] leading-[0.95] uppercase">Regulars</span>
+      </h2>
+      <p class="border-l-2 border-accent pl-6 text-ink/75">
+        Six things we make every day and would rather not take off. Stirred to order,
+        poured at the temperature they are supposed to be, and priced so you can have
+        two.
+      </p>
+    </div>
+
+    <ul class="mt-14 grid gap-x-16 md:grid-cols-2">
+      {featured.map((drink) => <DrinkRow drink={drink} />)}
+    </ul>
+
+    <div class="mt-12">
+      <a href="/menu" class="btn btn-ghost">
+        The full list
+        <span aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  </section>
+
+  <section id="story" class="bg-paper-sunk/50">
+    <div class="mx-auto grid max-w-page gap-14 px-6 py-24 md:grid-cols-2 md:items-center md:px-10 md:py-32">
+      <Image
+        data-reveal
+        src={storyImage}
+        alt="Bar counter lined with bottles in low light"
+        widths={[480, 800, 1200]}
+        sizes="(min-width: 768px) 46vw, 92vw"
+        class="aspect-4/5 w-full rounded-3xl object-cover md:aspect-3/4"
+        loading="lazy"
+      />
+
+      <div data-reveal>
+        <div class="flex items-center gap-4">
+          <span class="h-px w-10 bg-brand/40"></span>
+          <p class="eyebrow text-brand/75">Since 2019</p>
+        </div>
+
+        <h2 class="mt-8 text-brand">
+          <span class="block font-display text-[clamp(2rem,5vw,3.5rem)] leading-[1.05] uppercase">A short list,</span>
+          <span class="block font-body text-[clamp(2rem,5vw,3.5rem)] leading-[1.05] italic">kept honest</span>
+        </h2>
+
+        <div class="mt-8 max-w-prose space-y-5 text-ink/75">
+          <p>
+            We opened in a former wine merchant's storeroom with eleven seats and a
+            single shelf of vermouth. The shelf has grown. The seat count has not.
+          </p>
+          <p>
+            Bitters, shrubs, and infusions are made in the room above the bar in
+            batches of about forty bottles. Wine comes from eight growers we buy from
+            directly, most of them working under two hectares.
+          </p>
+          <p>
+            Nothing on the list is there because a distributor asked. That is the only
+            rule.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-page px-6 py-24 md:px-10 md:py-32">
+    <div class="flex flex-wrap items-baseline justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <span class="h-px w-10 bg-brand/40"></span>
+        <p class="eyebrow text-brand/75">The room</p>
+      </div>
+      <p class="data text-[11px] text-ink/70">Demo content — illustrative, not real reviews</p>
+    </div>
+
+    <ul class="mt-12 grid gap-10 md:grid-cols-3">
+      {quotes.map((quote) => (
+        <li data-reveal>
+          <blockquote class="text-xl leading-snug text-brand italic">
+            &ldquo;{quote.text}&rdquo;
+          </blockquote>
+          <p class="eyebrow mt-5 text-ink/70">{quote.who}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="px-4 pb-4 md:px-6 md:pb-6">
+    <div class="rounded-3xl bg-brand-dk px-6 py-20 text-center text-paper md:px-10 md:py-28">
+      <h2 data-reveal class="mx-auto max-w-3xl font-display text-[clamp(1.75rem,4.5vw,3rem)] leading-[1.1] uppercase">
+        <span class="stroke block">No bookings.</span>
+        <span class="block">Just come in.</span>
+      </h2>
+      <p class="mx-auto mt-6 max-w-md text-paper/70">
+        Fourteen seats, first come. If it is full, the bar next door is good and we
+        will tell you so.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-6">
+        <a href="/menu" class="btn btn-primary">
+          See the menu
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

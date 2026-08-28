@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found — Cellar & Vine" description="That page does not exist.">
+  <div class="mx-auto flex min-h-[60vh] max-w-prose flex-col justify-center px-6 py-24 text-center">
+    <p class="eyebrow text-brand/75">Error 404</p>
+    <h1 class="mt-6 font-display text-[clamp(2.5rem,8vw,5rem)] leading-[1.05] text-brand uppercase">
+      <span class="stroke block">Nothing</span>
+      <span class="block">Poured Here.</span>
+    </h1>
+    <p class="mt-6 text-ink/75">
+      The page you wanted is not on the list. The drinks, thankfully, still are.
+    </p>
+    <div class="mt-10 flex justify-center">
+      <a href="/menu" class="btn btn-primary">See the menu <span aria-hidden="true">&rarr;</span></a>
+    </div>
+  </div>
+</Base>

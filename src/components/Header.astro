@@ -1,0 +1,90 @@
+---
+import OpenNow from './OpenNow.astro';
+
+interface Props { transparent?: boolean }
+const { transparent = false } = Astro.props;
+
+const nav = [
+  { href: '/menu', label: 'Menu' },
+  { href: '/reserve', label: 'Reserve' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+
+{/* Sentinel: when it scrolls out of view the header goes solid. */}
+{transparent && <div id="header-sentinel" aria-hidden="true" class="absolute top-0 h-24 w-full"></div>}
+
+<header
+  data-transparent={transparent ? '' : null}
+  class:list={[
+    'sticky top-0 z-40 transition-colors duration-300',
+    transparent ? 'text-paper' : 'border-b border-brand/10 bg-paper text-brand',
+  ]}
+>
+  <div class="mx-auto flex max-w-page items-center justify-between px-6 py-5 md:px-10">
+    <div class="flex items-center gap-5">
+      <a href="/" class="inline-flex min-h-11 items-center font-display text-xl tracking-[0.02em] uppercase">
+        Cellar<span class="text-accent">&amp;</span>Vine
+      </a>
+      <OpenNow class="hidden opacity-80 lg:flex" />
+    </div>
+
+    <nav aria-label="Main" class="hidden items-center gap-9 md:flex">
+      {nav.map((item) => (
+        <a href={item.href} class="eyebrow inline-flex min-h-11 items-center opacity-70 transition-opacity hover:opacity-100">
+          {item.label}
+        </a>
+      ))}
+      <a href="/cart" class="btn btn-primary" data-cart-link>
+        Cart
+        <span class="cart-badge" data-cart-count hidden>0</span>
+      </a>
+    </nav>
+
+    {/* No-JS mobile nav: a native disclosure. */}
+    <details class="relative md:hidden">
+      <summary class="eyebrow grid h-11 w-11 cursor-pointer list-none place-items-center rounded-full border border-current/30">
+        <span class="sr-only">Menu</span>
+        <svg width="16" height="10" viewBox="0 0 16 10" fill="none" aria-hidden="true">
+          <path d="M0 1h16M0 9h16" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </summary>
+      <nav
+        aria-label="Main"
+        class="absolute right-0 mt-3 flex w-56 flex-col gap-1 rounded-2xl border border-brand/10 bg-paper p-3 text-brand shadow-panel"
+      >
+        {nav.map((item) => (
+          <a href={item.href} class="eyebrow flex min-h-11 items-center rounded-full px-4 hover:bg-brand/5">
+            {item.label}
+          </a>
+        ))}
+        <a href="/cart" class="btn btn-primary mt-1 justify-center" data-cart-link>
+          Cart
+          <span class="cart-badge" data-cart-count hidden>0</span>
+        </a>
+      </nav>
+    </details>
+  </div>
+</header>
+
+{transparent && (
+  <script is:inline>
+    // 6 lines beats a scroll listener: flip the header solid once the hero passes.
+    const sentinel = document.getElementById('header-sentinel');
+    const header = document.querySelector('header[data-transparent]');
+    if (sentinel && header) {
+      new IntersectionObserver(
+        ([entry]) => header.classList.toggle('is-solid', !entry.isIntersecting),
+        { threshold: 0 },
+      ).observe(sentinel);
+    }
+  </script>
+  <style is:global>
+    header[data-transparent].is-solid {
+      background: var(--color-paper);
+      color: var(--color-brand);
+      border-bottom: 1px solid rgb(99 0 30 / 0.1);
+    }
+  </style>
+)}

@@ -1,0 +1,16 @@
+---
+interface Props {
+  /** Small stroked label above a group, e.g. "Cocktails". */
+  label: string;
+  /** Mono index printed on the right, e.g. "03". */
+  index?: string;
+}
+const { label, index } = Astro.props;
+---
+
+<div class="flex items-baseline justify-between gap-6 border-b border-brand/15 pb-3">
+  <h2 class="stroke-thin font-display text-2xl tracking-[0.05em] font-light text-brand uppercase">
+    {label}
+  </h2>
+  {index && <span class="data text-brand/70">{index}</span>}
+</div>

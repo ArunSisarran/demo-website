@@ -1,0 +1,81 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Thank you — Cellar & Vine" description="We have your request.">
+  <div class="mx-auto max-w-prose px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+    <p class="eyebrow text-brand/75">Received</p>
+
+    <h1 class="mt-6 font-display text-[clamp(2.25rem,6vw,4rem)] leading-[1.05] text-brand uppercase">
+      <span class="stroke block">We've</span>
+      <span class="block">Got It.</span>
+    </h1>
+
+    <p class="mt-6 text-ink/75">
+      Someone reads these between services, so a reply usually lands the same evening —
+      the next morning at the latest. If it is urgent, the phone is quicker.
+    </p>
+
+    <div class="mt-10 rounded-3xl border border-brand/15 bg-paper-sunk/60 p-8" data-booking hidden>
+      <p class="eyebrow text-brand/75">What you asked for</p>
+      <dl class="mt-5 space-y-3">
+        <div class="flex justify-between gap-6"><dt class="text-ink/75">Date</dt><dd class="data text-base text-brand" data-b-date></dd></div>
+        <div class="flex justify-between gap-6"><dt class="text-ink/75">Time</dt><dd class="data text-base text-brand" data-b-time></dd></div>
+        <div class="flex justify-between gap-6"><dt class="text-ink/75">Party</dt><dd class="data text-base text-brand" data-b-party></dd></div>
+      </dl>
+      <p class="mt-5 text-[15px] text-ink/75">
+        Not confirmed until we reply. The table is held for fifteen minutes past the time
+        above; the door is unmarked and dark green.
+      </p>
+      <a class="btn btn-ghost mt-6" data-ics download="cellar-and-vine.ics" href="#">
+        Add to calendar
+      </a>
+    </div>
+
+    <p class="data mt-10 text-[11px] text-ink/70">
+      Demo — this site is a demonstration, and nothing has actually been booked.
+    </p>
+
+    <div class="mt-10 flex flex-wrap gap-6">
+      <a href="/menu" class="btn btn-primary">See the menu <span aria-hidden="true">&rarr;</span></a>
+      <a href="/" class="btn btn-ghost">Back home</a>
+    </div>
+  </div>
+
+  <script>
+    const raw = sessionStorage.getItem('cv-booking');
+    if (raw) {
+      const booking = JSON.parse(raw);
+      const panel = document.querySelector('[data-booking]');
+      panel.hidden = false;
+      const day = new Date(booking.date + 'T12:00:00').toLocaleDateString('en-GB', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      });
+      document.querySelector('[data-b-date]').textContent = day;
+      document.querySelector('[data-b-time]').textContent = booking.time;
+      document.querySelector('[data-b-party]').textContent = booking.party;
+
+      // A two-hour hold, written straight into an .ics so it lands in whatever
+      // calendar they use without an integration.
+      const stamp = (iso, time, addHours = 0) => {
+        const d = new Date(`${iso}T${time}:00`);
+        d.setHours(d.getHours() + addHours);
+        return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      };
+      const ics = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Cellar and Vine//Demo//EN',
+        'BEGIN:VEVENT',
+        `UID:${Date.now()}@cellarandvine.demo`,
+        `DTSTAMP:${stamp(booking.date, booking.time)}`,
+        `DTSTART:${stamp(booking.date, booking.time)}`,
+        `DTEND:${stamp(booking.date, booking.time, 2)}`,
+        `SUMMARY:Cellar & Vine — ${booking.party}`,
+        'LOCATION:14 Alder Lane, Fitzrovia, London W1T',
+        'DESCRIPTION:Requested booking. Not confirmed until the bar replies.',
+        'END:VEVENT', 'END:VCALENDAR',
+      ].join('\r\n');
+      document.querySelector('[data-ics]').href =
+        URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+    }
+  </script>
+</Base>

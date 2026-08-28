@@ -1,0 +1,79 @@
+---
+// A native <dialog>: focus trap, Esc to close, and an inert backdrop for free.
+---
+
+<dialog data-cart-drawer class="cart-drawer" aria-label="Your cart">
+  <div class="flex h-full flex-col">
+    <div class="flex items-center justify-between gap-4 border-b border-brand/15 px-6 py-5">
+      <p class="font-display text-lg tracking-[0.05em] text-brand uppercase">Your round</p>
+      <button
+        type="button"
+        data-drawer-close
+        class="grid h-11 w-11 place-items-center rounded-full border border-brand/20 text-brand hover:bg-brand/5"
+      >
+        <span class="sr-only">Close cart</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="none">
+          <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-6">
+      <ul class="divide-y divide-brand/15" data-drawer-lines></ul>
+      <p class="py-12 text-ink/75" data-drawer-empty hidden>
+        Nothing in the cart yet.
+        <a class="text-brand underline decoration-brand/30 underline-offset-4" href="/menu">Have a look at the list</a>.
+      </p>
+    </div>
+
+    <div class="border-t border-brand/15 bg-paper-sunk/60 px-6 py-5" data-drawer-foot hidden>
+      <div class="flex items-baseline justify-between gap-6">
+        <p class="font-display text-lg tracking-[0.05em] text-brand uppercase">Total</p>
+        <p class="data text-lg text-brand" data-drawer-total>£0.00</p>
+      </div>
+      <div class="mt-5 flex flex-col gap-3">
+        <a href="/checkout" class="btn btn-primary justify-center">
+          Checkout <span aria-hidden="true">&rarr;</span>
+        </a>
+        <a href="/cart" class="btn btn-ghost justify-center">Open full cart</a>
+      </div>
+      <p class="data mt-4 text-[11px] text-ink/70">Demo — no charge is taken.</p>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  import { renderLines } from '../scripts/cart-render.js';
+
+  const drawer = document.querySelector('[data-cart-drawer]');
+  const catalog = JSON.parse(document.getElementById('catalog').textContent);
+  const lines = drawer.querySelector('[data-drawer-lines]');
+
+  function paint() {
+    const { slugs, total } = renderLines(lines, catalog, { compact: true });
+    drawer.querySelector('[data-drawer-empty]').hidden = slugs.length > 0;
+    drawer.querySelector('[data-drawer-foot]').hidden = slugs.length === 0;
+    drawer.querySelector('[data-drawer-total]').textContent =
+      new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(total);
+  }
+
+  document.addEventListener('cart:change', paint);
+
+  // Cart links open the drawer instead of navigating — except with a modifier,
+  // where someone is deliberately opening a new tab.
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('[data-cart-link]');
+    if (!link || event.metaKey || event.ctrlKey || event.shiftKey) return;
+    event.preventDefault();
+    paint();
+    drawer.showModal();
+  });
+
+  drawer.querySelector('[data-drawer-close]').addEventListener('click', () => drawer.close());
+  // Click on the backdrop (outside the panel) closes too.
+  drawer.addEventListener('click', (event) => {
+    if (event.target === drawer) drawer.close();
+  });
+
+  paint();
+</script>
