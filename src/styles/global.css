@@ -367,6 +367,126 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Scroll-driven choreography. The page draws itself in the order you read it:
+   a rule strikes out, a headline pours full, the rows settle.
+
+   All of it is scrubbed by scroll position rather than fired on a trigger, so
+   it tracks the reader instead of playing at them — and it costs no JavaScript
+   at all. Where `animation-timeline` is missing the whole block is skipped and
+   the page renders at its resting state, which is what shipped before any of
+   this existed.
+   --------------------------------------------------------------------------- */
+@layer components {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      /* Display caps arrive as outline and fill from the baseline up — the one
+         gesture this system already owns, given something to do. The stroke
+         thins to nothing as the fill lands, so the settled glyph is identical
+         to plain solid type rather than 1.5px heavier than it used to be. */
+      .pour {
+        background-image: linear-gradient(currentColor 0 0);
+        background-repeat: no-repeat;
+        background-position: 0 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        -webkit-text-stroke: 1.5px currentColor;
+        animation: pour linear both;
+        animation-timeline: view();
+        /* Ends when the headline has climbed to roughly the top quarter, by
+           which point the rows underneath it are on screen. Anything shorter
+           and the pour is over before there is anything to read. */
+        animation-range: cover 0% cover 68%;
+      }
+      /* The outline holds while the fill rises inside it, then dissolves over
+         the last third. Stroke *width* interpolates discretely and pops at the
+         halfway mark; stroke colour interpolates smoothly and lands fully
+         transparent, so the settled glyph is plain solid type to the pixel. */
+      @keyframes pour {
+        from {
+          background-size: 100% 0%;
+          -webkit-text-stroke-color: currentColor;
+        }
+        68% {
+          -webkit-text-stroke-color: currentColor;
+        }
+        to {
+          background-size: 100% 100%;
+          -webkit-text-stroke-color: rgb(from currentColor r g b / 0);
+        }
+      }
+
+      /* The hairline beside an eyebrow strikes out from the margin. */
+      .draw-x {
+        transform-origin: left center;
+        animation: draw-x linear both;
+        animation-timeline: view();
+        animation-range: entry 8% entry 85%;
+      }
+      @keyframes draw-x {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+      }
+
+      /* Same reveal as before, scrubbed instead of fired. Position in the
+         viewport does the staggering that a 60ms JS offset used to fake, and
+         the observer never runs — see Base.astro. */
+      [data-reveal] {
+        transition: none;
+        animation: reveal-in linear both;
+        animation-timeline: view();
+        animation-range: entry 5% entry 65%;
+      }
+      @keyframes reveal-in {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: none; }
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Cross-document view transitions. No router and no client JS: the browser
+   morphs between two static documents on its own. Where it is unsupported the
+   navigation is an ordinary page load.
+   --------------------------------------------------------------------------- */
+@view-transition {
+  navigation: auto;
+}
+
+/* Unlayered on purpose: these pseudo-elements live outside the document tree
+   and a cascade layer loses to the UA's own 250ms default, which silently
+   snatches the morph back to a quarter-second. */
+::view-transition-group(*) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The paper ground swaps faster than the object travelling across it, so the
+   napkin is the thing the eye follows. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+}
+
+/* The header is named so it is lifted out of the root snapshot and stops being
+   dragged through the page cross-fade. Its content is identical on both sides,
+   so a quick fade in place is invisible — the point is that it holds still.
+   The footer is deliberately NOT named: it is content, not a frame, and
+   pinning it would make it jump between two different page positions. */
+::view-transition-group(site-header) {
+  animation-duration: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Cart drawer. A native <dialog>, repositioned from centred to a right-hand
    panel; ::backdrop and Esc-to-close come free.
    --------------------------------------------------------------------------- */

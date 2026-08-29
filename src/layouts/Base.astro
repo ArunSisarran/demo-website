@@ -80,6 +80,88 @@ const catalog = Object.fromEntries(
     >
       Skip to content
     </a>
+    {/* Classic, not a module: `pagereveal` fires before deferred scripts run,
+        so a listener registered from a module would miss the navigation it
+        exists to handle. This has to be parsed and executed on the spot. */}
+    <script is:inline>
+      // Exactly one photo takes part in the morph: the drink you clicked.
+      //
+      // Naming every row instead would animate the whole list — rows with a
+      // counterpart on the other page travel across the screen, and rows
+      // without one fade out on their own, over the group's duration rather
+      // than the page's. Both read as the page being busy.
+      //
+      // So the drink page names its hero, nothing else does, and a row is
+      // named only while a navigation is actually happening: on the way out
+      // the row being opened, on the way back the row we came from.
+      (function () {
+        var HERO = 'drink-hero';
+        var KEY = 'cv-morph';
+
+        function slugOf(url) {
+          if (!url) return '';
+          try {
+            var u = new URL(url, location.href);
+            if (u.origin !== location.origin) return '';
+            var m = u.pathname.match(/^\/menu\/([^/]+)\/?$/);
+            return m ? m[1] : '';
+          } catch (e) {
+            return '';
+          }
+        }
+
+        function rowFor(slug) {
+          if (!slug) return null;
+          var link = document.querySelector('a[href="/menu/' + slug + '"]');
+          var li = link && link.closest('li');
+          return (li && li.querySelector('.napkin')) || null;
+        }
+
+        function holder() {
+          return document.querySelector('[style*="' + HERO + '"]');
+        }
+
+        // Leaving: the row being opened takes the name, even if the hero of
+        // the page we are leaving currently holds it — clicking an "also try"
+        // drink should grow that thumbnail, not the hero we are abandoning.
+        // Two elements sharing a name is an error the browser responds to by
+        // dropping the transition entirely, so the handover is explicit.
+        function nameOnExit(slug) {
+          var row = rowFor(slug);
+          if (!row) return;
+          var current = holder();
+          if (current === row) return;
+          if (current) current.style.viewTransitionName = '';
+          row.style.viewTransitionName = HERO;
+        }
+
+        // Arriving: only ever fills an empty slot. A drink page already names
+        // its hero and must keep it, or the pair is nonsense.
+        function nameOnEntry(slug) {
+          if (holder()) return;
+          var row = rowFor(slug);
+          if (row) row.style.viewTransitionName = HERO;
+        }
+
+        addEventListener('pageswap', function (event) {
+          if (!event.viewTransition) return;
+          nameOnExit(slugOf(event.activation && event.activation.entry && event.activation.entry.url));
+          // Always written, so leaving any other page clears a stale slug and
+          // the list we land on doesn't animate a photo in from nowhere.
+          try {
+            sessionStorage.setItem(KEY, slugOf(location.href));
+          } catch (e) {}
+        });
+
+        addEventListener('pagereveal', function (event) {
+          if (!event.viewTransition) return;
+          try {
+            nameOnEntry(sessionStorage.getItem(KEY));
+          } catch (e) {}
+        });
+      })();
+    </script>
+
     <Header transparent={transparentHeader} />
     <main id="main">
       <slot />
@@ -136,10 +218,39 @@ const catalog = Object.fromEntries(
     </script>
 
     <script>
+      // A back link should step back, not load a fresh copy of where you came
+      // from — going back restores your scroll position, any filter you had
+      // set, and plays the view transition in reverse, so the drink page reads
+      // as something that opened over the list and closed again.
+      //
+      // Only when the link points at the page you actually arrived from. A
+      // direct arrival, a shared link, or a jump in from somewhere else still
+      // navigates normally, and a modifier-click always opens the href.
+      document.addEventListener('click', (event) => {
+        const link = event.target instanceof Element && event.target.closest('[data-back]');
+        if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        const tidy = (path) => path.replace(/\/+$/, '') || '/';
+        let from;
+        try {
+          from = new URL(document.referrer);
+        } catch {
+          return; // No referrer: nothing to go back to.
+        }
+        if (from.origin !== location.origin) return;
+        if (tidy(from.pathname) !== tidy(new URL(link.href).pathname)) return;
+        event.preventDefault();
+        history.back();
+      });
+    </script>
+
+    <script>
       // Fade + 16px rise, once, staggered across siblings. The hiding CSS is
       // gated on this attribute, so without JS everything is simply visible.
+      // Where the browser can scrub this from scroll position itself, the CSS
+      // owns it and none of the following runs at all.
+      const cssDrivesIt = CSS.supports('animation-timeline', 'view()');
       const targets = document.querySelectorAll('[data-reveal]');
-      if (targets.length && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (targets.length && !cssDrivesIt && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
         document.documentElement.setAttribute('data-reveal-ready', '');
         const observer = new IntersectionObserver(
           (entries) => {
