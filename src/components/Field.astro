@@ -24,7 +24,7 @@ const {
 const id = `f-${name}`;
 ---
 
-<div class={className}>
+<div class={`min-w-0 ${className}`}>
   <label class="field-label" for={id}>
     {label}{!required && <span class="text-ink/70"> (optional)</span>}
   </label>

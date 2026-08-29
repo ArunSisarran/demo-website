@@ -247,6 +247,10 @@
   .field-input {
     display: block;
     width: 100%;
+    /* iOS Safari sizes date/time controls from their native widget, which
+       ignores width:100% and pushes the grid column past the viewport. */
+    min-width: 0;
+    max-width: 100%;
     min-height: 48px;
     padding: 0.75rem 1rem;
     border: 1px solid var(--color-rule-strong);
@@ -260,6 +264,11 @@
   .field-input:focus-visible {
     border-color: var(--color-brand-lt);
     /* The amber ring comes from the global :focus-visible outline. */
+  }
+  input[type='date'].field-input,
+  input[type='time'].field-input {
+    -webkit-appearance: none;
+    appearance: none;
   }
   textarea.field-input {
     min-height: 8rem;
@@ -369,6 +378,14 @@
     color: var(--color-ink);
     padding: 0;
     overflow: hidden;
+  }
+  /* On a phone the panel is the screen — a strip of backdrop down one side
+     reads as a half-finished drawer. */
+  @media (width < 40rem) {
+    .cart-drawer {
+      width: 100vw;
+      border-left: none;
+    }
   }
   .cart-drawer::backdrop {
     background: rgb(10 20 16 / 0.55);
