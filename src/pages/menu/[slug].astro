@@ -26,12 +26,12 @@ const alsoTry = drinks
 
 <Base title={`${name} — Cellar & Vine`} description={note} ogImage={`/og/drinks/${drink.id}.jpg`} cartBar>
   <article class="mx-auto max-w-page px-6 pt-12 pb-24 md:px-10 md:pt-20 md:pb-32">
-    <a href="/menu" data-back class="eyebrow inline-flex min-h-11 items-center gap-2 text-brand/75 transition-colors hover:text-brand">
-      <span aria-hidden="true">&larr;</span>Back to the menu
+    <a href="/menu" data-back="any" class="eyebrow inline-flex min-h-11 items-center gap-2 text-brand/75 transition-colors hover:text-brand">
+      <span aria-hidden="true">&larr;</span>Back
     </a>
 
     <div class="mt-10 grid gap-14 md:grid-cols-2 md:gap-20">
-      <div class="napkin p-4 md:self-start" style="view-transition-name: drink-hero">
+      <div class="napkin vt-hero p-4 md:self-start">
         <Image
           src={image}
           alt={alt}

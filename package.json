@@ -7,6 +7,7 @@
     "dev:mobile": "astro dev --host",
     "build": "astro build",
     "preview": "astro preview",
+    "preview:mobile": "node scripts/serve.mjs",
     "check:hours": "node src/lib/hours.check.mjs"
   },
   "dependencies": {

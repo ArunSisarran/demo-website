@@ -71,6 +71,58 @@
    Brand tokens. Rebranding for the next prospect happens HERE and nowhere else.
    Values extracted from the Madie design system (see DESIGN.md).
    --------------------------------------------------------------------------- */
+/* Metric-matched stand-ins for all four faces.
+
+   Until a real face paints, the page is laid out on whatever the platform
+   hands us — and the display fallback used to be Times New Roman standing in
+   for a heavy grotesque, which is both wrong to look at and a long way off in
+   width. These overrides make each stand-in occupy the same space as the real
+   thing, so the swap costs no reflow: same line count, same page height,
+   nothing shifting under a reader who is partway down.
+
+   The ratios are measured, not guessed, and measured against the copy each
+   face actually sets — the display face is always uppercase here, and a
+   mixed-case pangram gives a ratio 8% out, which is enough to flip a drink
+   name onto a second line and move everything below it. To recompute: render
+   a representative string at 1000px in the real face and in Arial, take
+   width(real) / width(Arial) as `size-adjust`, then divide the real face's
+   fontBoundingBoxAscent / descent by that ratio for the overrides. */
+@font-face {
+  font-family: 'Jost fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 96.51%;
+  ascent-override: 110.87%;
+  descent-override: 38.86%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Archivo Black fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 112.9%;
+  ascent-override: 77.77%;
+  descent-override: 18.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Inter fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 99.93%;
+  ascent-override: 96.97%;
+  descent-override: 24.12%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 111.33%;
+  ascent-override: 91.62%;
+  descent-override: 26.95%;
+  line-gap-override: 0%;
+}
+
 @theme {
   /* Surfaces — warm paper is the ground; deep green is the inverse world. */
   --color-paper: #f7f3ea;
@@ -93,10 +145,10 @@
   --color-rule-strong: #c9bfa9;
 
   /* Four families, one job each: signage / prose / UI furniture / data. */
-  --font-display: "Archivo Black", "Times New Roman", serif;
-  --font-body: Jost, system-ui, sans-serif;
-  --font-ui: Inter, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Archivo Black", "Archivo Black fallback", sans-serif;
+  --font-body: Jost, "Jost fallback", system-ui, sans-serif;
+  --font-ui: Inter, "Inter fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono fallback", ui-monospace, monospace;
 
   /* Sharp letters, soft objects. */
   --radius-panel: 28px;
@@ -428,6 +480,27 @@
         to { transform: scaleX(1); }
       }
 
+      /* Coming back to a page you have already read: no entrances, just the
+         settled page. Replaying them is wrong on its own terms — you have seen
+         this — and WebKit does not re-resolve a scroll-driven timeline after
+         the browser restores your scroll position, so anything still partway
+         through its range stays stuck there until you scroll it yourself.
+         Rows vanish and reappear on touch. Nothing pending, nothing to stick. */
+      [data-returning] .pour {
+        animation: none;
+        background-size: 100% 100%;
+        -webkit-text-stroke-width: 0;
+      }
+      [data-returning] .draw-x {
+        animation: none;
+        transform: none;
+      }
+      [data-returning] [data-reveal] {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+
       /* Same reveal as before, scrubbed instead of fired. Position in the
          viewport does the staggering that a 60ms JS offset used to fake, and
          the observer never runs — see Base.astro. */
@@ -450,8 +523,27 @@
    morphs between two static documents on its own. Where it is unsupported the
    navigation is an ordinary page load.
    --------------------------------------------------------------------------- */
-@view-transition {
-  navigation: auto;
+/* View transitions are desktop-only, opt-in and all.
+   Measured, frame by frame, on a phone: the cross-fade paints the outgoing
+   page on top of the incoming one for ~80ms, and on a small screen a drink
+   page and a list look nothing alike, so what you see is the previous page
+   ghosting over the one you are returning to. Removing the opt-in below this
+   width measures exactly zero frames of disturbance; the navigation is a clean
+   cut instead. Both rules live in one block because they are one decision. */
+@media (min-width: 48rem) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  .vt-hero {
+    view-transition-name: drink-hero;
+  }
+
+  /* Named so it is lifted out of the root snapshot and holds still, rather
+     than being dragged through the page cross-fade. */
+  [data-vt-header] {
+    view-transition-name: site-header;
+  }
 }
 
 /* Unlayered on purpose: these pseudo-elements live outside the document tree

@@ -72,6 +72,29 @@ const catalog = Object.fromEntries(
     {/* Only the two faces that paint above the fold are preloaded. */}
     <link rel="preload" href="/fonts/ArchivoBlack-400.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/Jost-400.woff2" as="font" type="font/woff2" crossorigin />
+    {/* Before the body exists, so the browser's own scroll restoration is not
+        clamped by a document that has not been built yet. The readout showed it
+        landing 44px short here and being corrected later; on a phone the gap
+        can be larger, and whatever is painted before the correction is the
+        flash of somewhere else. Giving the page its remembered height up front
+        means the browser's restore is right the first time. */}
+    <script is:inline>
+      (function () {
+        try {
+          var entry = performance.getEntriesByType('navigation')[0];
+          if (!entry || entry.type !== 'back_forward') return;
+          var st = history.state;
+          if (!st || typeof st.cvH !== 'number') return;
+          var root = document.documentElement;
+          root.style.minHeight = st.cvH + 'px';
+          // Clears itself: the body script only registers a cleanup when it
+          // sets the height too, and it will not if this already did.
+          addEventListener('load', function () {
+            root.style.minHeight = '';
+          });
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <a
@@ -80,88 +103,6 @@ const catalog = Object.fromEntries(
     >
       Skip to content
     </a>
-    {/* Classic, not a module: `pagereveal` fires before deferred scripts run,
-        so a listener registered from a module would miss the navigation it
-        exists to handle. This has to be parsed and executed on the spot. */}
-    <script is:inline>
-      // Exactly one photo takes part in the morph: the drink you clicked.
-      //
-      // Naming every row instead would animate the whole list — rows with a
-      // counterpart on the other page travel across the screen, and rows
-      // without one fade out on their own, over the group's duration rather
-      // than the page's. Both read as the page being busy.
-      //
-      // So the drink page names its hero, nothing else does, and a row is
-      // named only while a navigation is actually happening: on the way out
-      // the row being opened, on the way back the row we came from.
-      (function () {
-        var HERO = 'drink-hero';
-        var KEY = 'cv-morph';
-
-        function slugOf(url) {
-          if (!url) return '';
-          try {
-            var u = new URL(url, location.href);
-            if (u.origin !== location.origin) return '';
-            var m = u.pathname.match(/^\/menu\/([^/]+)\/?$/);
-            return m ? m[1] : '';
-          } catch (e) {
-            return '';
-          }
-        }
-
-        function rowFor(slug) {
-          if (!slug) return null;
-          var link = document.querySelector('a[href="/menu/' + slug + '"]');
-          var li = link && link.closest('li');
-          return (li && li.querySelector('.napkin')) || null;
-        }
-
-        function holder() {
-          return document.querySelector('[style*="' + HERO + '"]');
-        }
-
-        // Leaving: the row being opened takes the name, even if the hero of
-        // the page we are leaving currently holds it — clicking an "also try"
-        // drink should grow that thumbnail, not the hero we are abandoning.
-        // Two elements sharing a name is an error the browser responds to by
-        // dropping the transition entirely, so the handover is explicit.
-        function nameOnExit(slug) {
-          var row = rowFor(slug);
-          if (!row) return;
-          var current = holder();
-          if (current === row) return;
-          if (current) current.style.viewTransitionName = '';
-          row.style.viewTransitionName = HERO;
-        }
-
-        // Arriving: only ever fills an empty slot. A drink page already names
-        // its hero and must keep it, or the pair is nonsense.
-        function nameOnEntry(slug) {
-          if (holder()) return;
-          var row = rowFor(slug);
-          if (row) row.style.viewTransitionName = HERO;
-        }
-
-        addEventListener('pageswap', function (event) {
-          if (!event.viewTransition) return;
-          nameOnExit(slugOf(event.activation && event.activation.entry && event.activation.entry.url));
-          // Always written, so leaving any other page clears a stale slug and
-          // the list we land on doesn't animate a photo in from nowhere.
-          try {
-            sessionStorage.setItem(KEY, slugOf(location.href));
-          } catch (e) {}
-        });
-
-        addEventListener('pagereveal', function (event) {
-          if (!event.viewTransition) return;
-          try {
-            nameOnEntry(sessionStorage.getItem(KEY));
-          } catch (e) {}
-        });
-      })();
-    </script>
-
     <Header transparent={transparentHeader} />
     <main id="main">
       <slot />
@@ -223,9 +164,15 @@ const catalog = Object.fromEntries(
       // set, and plays the view transition in reverse, so the drink page reads
       // as something that opened over the list and closed again.
       //
-      // Only when the link points at the page you actually arrived from. A
-      // direct arrival, a shared link, or a jump in from somewhere else still
-      // navigates normally, and a modifier-click always opens the href.
+      // `data-back` is strict: it steps back only when the page it points at
+      // is the one you arrived from, so a link that names its destination
+      // ("Back to the cart") can never send you somewhere else.
+      // `data-back="any"` is for a link that only says "Back" — it returns you
+      // wherever you came from, which for a drink is the home list or the menu
+      // depending on how you got in.
+      //
+      // Either way a direct arrival, a shared link, or a modifier-click still
+      // navigates to the href, so the link works with JavaScript off.
       document.addEventListener('click', (event) => {
         const link = event.target instanceof Element && event.target.closest('[data-back]');
         if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
@@ -237,7 +184,8 @@ const catalog = Object.fromEntries(
           return; // No referrer: nothing to go back to.
         }
         if (from.origin !== location.origin) return;
-        if (tidy(from.pathname) !== tidy(new URL(link.href).pathname)) return;
+        if (link.getAttribute('data-back') !== 'any' &&
+            tidy(from.pathname) !== tidy(new URL(link.href).pathname)) return;
         event.preventDefault();
         history.back();
       });
@@ -268,6 +216,173 @@ const catalog = Object.fromEntries(
           observer.observe(target);
         }
       }
+    </script>
+    {/* Classic and last: not a module, because `pagereveal` fires before
+        deferred scripts run and a listener registered from one would miss the
+        navigation it exists to handle; and at the end of the body, because it
+        needs the rows parsed to find the one it has to name. */}
+    <script is:inline>
+      // Exactly one photo takes part in the morph: the drink you clicked.
+      //
+      // Naming every row instead would animate the whole list — rows with a
+      // counterpart on the other page travel across the screen, and rows
+      // without one fade out on their own, over the group's duration rather
+      // than the page's. Both read as the page being busy.
+      //
+      // So the drink page names its hero, nothing else does, and a row is
+      // named only while a navigation is actually happening.
+      (function () {
+        var HERO = 'vt-hero';
+        var KEY = 'cv-morph';
+
+        // Arriving backwards? Then this page has already been read, and the
+        // CSS drops it straight to its settled state — no entrance replays.
+        // Set before the first render, so there is no frame of
+        // animated-then-corrected.
+        function markReturn() {
+          document.documentElement.setAttribute('data-returning', '');
+        }
+        var entry = performance.getEntriesByType('navigation')[0];
+        var returning = !!entry && entry.type === 'back_forward';
+        if (returning) markReturn();
+        addEventListener('pageshow', function (event) {
+          if (event.persisted) markReturn();
+        });
+
+        // Land on the scroll position before the first paint, not after it.
+        //
+        // The browser restores scroll on a traversal by itself, but WebKit
+        // does it late enough that one frame of the top of the page gets
+        // painted first. So we put the position on the history entry as we
+        // leave, and put it back synchronously here, while this script is
+        // still blocking the first render.
+        //
+        // Deliberately *in addition to* the browser's own restoration rather
+        // than instead of it: `scrollRestoration = 'manual'` would hand us the
+        // whole job, and if our value were ever missing the reader would land
+        // at the top of the page. This way the browser still corrects us a
+        // moment later, so the worst case is the flash we already had.
+        function remember() {
+          try {
+            var st = history.state || {};
+            var y = Math.round(scrollY);
+            var h = document.documentElement.scrollHeight;
+            if (st.cvY !== y || st.cvH !== h) {
+              history.replaceState(Object.assign({}, st, { cvY: y, cvH: h }), '');
+            }
+          } catch (e) {}
+        }
+        addEventListener('pagehide', remember);
+
+        if (returning) {
+          var st = history.state || {};
+          if (typeof st.cvY === 'number' && st.cvY > 0) {
+            // No scroll anchoring while we do it. Fonts swap in after the
+            // first paint, the text above the viewport grows, and anchoring
+            // shifts the page to compensate — then the browser's own
+            // restoration undoes the shift, so the reader gets a bounce.
+            var root = document.documentElement;
+            root.style.overflowAnchor = 'none';
+            addEventListener('load', function () {
+              root.style.overflowAnchor = '';
+            });
+            // `behavior: instant` is not optional: the stylesheet sets
+            // `scroll-behavior: smooth` for in-page anchors, and a plain
+            // scrollTo inherits it — which animates the page down from the top
+            // instead of putting it there.
+            scrollTo({ top: st.cvY, left: 0, behavior: 'instant' });
+          }
+        }
+
+        function slugOf(url) {
+          if (!url) return '';
+          try {
+            var u = new URL(url, location.href);
+            if (u.origin !== location.origin) return '';
+            var m = u.pathname.match(/^\/menu\/([^/]+)\/?$/);
+            return m ? m[1] : '';
+          } catch (e) {
+            return '';
+          }
+        }
+
+        function rowFor(slug) {
+          if (!slug) return null;
+          var link = document.querySelector('a[href="/menu/' + slug + '"]');
+          var li = link && link.closest('li');
+          return (li && li.querySelector('.napkin')) || null;
+        }
+
+        function holder() {
+          return document.querySelector('.' + HERO);
+        }
+
+        function get() {
+          try { return sessionStorage.getItem(KEY) || ''; } catch (e) { return ''; }
+        }
+        function put(value) {
+          try { sessionStorage.setItem(KEY, value); } catch (e) {}
+        }
+
+        // Leaving: the row being opened takes the name, even if the hero of
+        // the page we are leaving holds it — clicking an "also try" drink
+        // should grow that thumbnail, not the hero we are abandoning. Two
+        // elements sharing a name is an error the browser answers by dropping
+        // the transition, so the handover is explicit rather than additive.
+        //
+        // Read off the clicked link, NOT off `pageswap`: that event carries
+        // the destination as a NavigationActivation, which is part of the
+        // Navigation API and does not exist in Safari. Taking it from the
+        // link works in every browser that has view transitions at all.
+        document.addEventListener('click', function (event) {
+          var link = event.target instanceof Element && event.target.closest('a[href^="/menu/"]');
+          if (!link || event.metaKey || event.ctrlKey || event.shiftKey) return;
+          var slug = slugOf(link.href);
+          if (!slug) return;
+          var row = rowFor(slug);
+          if (!row) return;
+          var current = holder();
+          if (current === row) return;
+          if (current) current.classList.remove(HERO);
+          row.classList.add(HERO);
+        }, true);
+
+        var arrived = false;
+        function arrive() {
+          if (arrived) return;
+          arrived = true;
+          var pending = get();
+          put(''); // Single use: a later, unrelated hop must not name anything.
+          // Arriving only ever fills an empty slot. A drink page already names
+          // its hero and has to keep it, or the pair is nonsense.
+          if (pending && !holder()) {
+            var row = rowFor(pending);
+            if (row) row.classList.add(HERO);
+          }
+          // Arm the return trip, so the list we go back to knows which row
+          // this page should shrink into.
+          var self = slugOf(location.href);
+          if (self) put(self);
+        }
+
+        // Synchronously, right here. This script is the last thing in the body,
+        // so every row is already parsed — and being before the first render
+        // is what matters: WebKit captures the incoming page's state at
+        // `pagereveal`, so a name applied any later than this simply is not in
+        // the snapshot and there is nothing for the hero to morph into.
+        // Chromium is lenient about this and captures later, which is why
+        // deferring it worked on the desktop and silently did nothing on iOS.
+        arrive();
+
+        // A page restored from the back/forward cache does not re-run scripts,
+        // so it keeps the name it was given on the way out — but the stored
+        // slug still needs consuming and re-arming for the next trip.
+        addEventListener('pageshow', function (event) {
+          if (!event.persisted) return;
+          arrived = false;
+          arrive();
+        });
+      })();
     </script>
   </body>
 </html>
