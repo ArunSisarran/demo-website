@@ -68,9 +68,9 @@ const quotes = [
           </a>
           <a
             href="#story"
-            class="eyebrow border-b border-paper/20 pb-0.5 text-paper/70 transition-colors hover:border-paper/55 hover:text-paper"
+            class="eyebrow inline-flex min-h-11 items-center text-paper/70 transition-colors hover:text-paper"
           >
-            About the bar
+            <span class="border-b border-current/40 pb-0.5">About the bar</span>
           </a>
         </div>
       </div>
@@ -99,7 +99,12 @@ const quotes = [
       {featured.map((drink) => <DrinkRow drink={drink} />)}
     </ul>
 
-    <div class="mt-12">
+    <p class="mt-10 max-w-prose text-[15px] text-ink/70">
+      Everything is made in a bar that also handles nuts, dairy and gluten, so we
+      cannot promise no trace. If it matters, tell us and we will talk it through.
+    </p>
+
+    <div class="mt-10">
       <a href="/menu" class="btn btn-ghost">
         The full list
         <span aria-hidden="true">&rarr;</span>
@@ -132,7 +137,7 @@ const quotes = [
 
         <div class="mt-8 max-w-prose space-y-5 text-ink/75">
           <p>
-            We opened in a former wine merchant's storeroom with eleven seats and a
+            We opened in a former wine merchant’s storeroom with eleven seats and a
             single shelf of vermouth. The shelf has grown. The seat count has not.
           </p>
           <p>
@@ -172,18 +177,24 @@ const quotes = [
 
   <section class="px-4 pb-4 md:px-6 md:pb-6">
     <div class="rounded-3xl bg-brand-dk px-6 py-20 text-center text-paper md:px-10 md:py-28">
-      <h2 data-reveal class="mx-auto max-w-3xl font-display text-[clamp(1.75rem,4.5vw,3rem)] leading-[1.1] uppercase">
-        <span class="stroke block">No bookings.</span>
-        <span class="block">Just come in.</span>
+      <h2 data-reveal class="mx-auto max-w-3xl text-balance font-display text-[clamp(1.75rem,4.5vw,3rem)] leading-[1.1] uppercase">
+        <span class="stroke block">Mostly walk-in.</span>
+        <span class="block">Four seats aren’t.</span>
       </h2>
       <p class="mx-auto mt-6 max-w-md text-paper/70">
-        Fourteen seats, first come. If it is full, the bar next door is good and we
-        will tell you so.
+        Ten of the fourteen are kept for whoever turns up. The other four you can
+        book, and we hold them for fifteen minutes.
       </p>
-      <div class="mt-10 flex flex-wrap justify-center gap-6">
-        <a href="/menu" class="btn btn-primary">
-          See the menu
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-6">
+        <a href="/reserve" class="btn btn-primary">
+          Reserve a table
           <span aria-hidden="true">&rarr;</span>
+        </a>
+        <a
+          href="/menu"
+          class="eyebrow inline-flex min-h-11 items-center text-paper/70 transition-colors hover:text-paper"
+        >
+          <span class="border-b border-current/40 pb-0.5">See the menu</span>
         </a>
       </div>
     </div>

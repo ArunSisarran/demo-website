@@ -17,7 +17,7 @@ order: 2
 
 Rye whisky, a spoon of oloroso, and two dashes of a bitters we make from toasted
 barley. Smoked to order under a cloche of cherrywood, which is theatre, but the
-smoke does genuinely soften the rye's edge.
+smoke does genuinely soften the rye’s edge.
 
 Ask for it without the smoke and you get a very good old fashioned. Ask for it with,
 and you get the reason people come back.

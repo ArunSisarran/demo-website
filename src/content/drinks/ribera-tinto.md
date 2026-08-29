@@ -19,4 +19,4 @@ the edges without turning it into vanilla. Poured slightly cool, which is how it
 drunk where it was made.
 
 Straightforward, generous, and the bottle we open most often for people who say they
-don't like red.
+don’t like red.

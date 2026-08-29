@@ -19,4 +19,4 @@ demerara for a week, then let down with apple cider vinegar and topped with soda
 the pass.
 
 It does what a good aperitif does — resets the palate and makes you hungry — with
-nothing in it. The most ordered drink on the list before seven o'clock.
+nothing in it. The most ordered drink on the list before seven o’clock.

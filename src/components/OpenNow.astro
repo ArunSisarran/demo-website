@@ -47,7 +47,7 @@ const { variant = 'badge', class: className = '' } = Astro.props;
           ? `Closing at ${state.closesAt} · last orders ${state.lastOrders}`
           : `Open now · until ${state.closesAt}`;
       } else {
-        dot.className = dot.className.replace(/bg-\S+/g, '') + ' bg-ink/30';
+        dot.className = dot.className.replace(/bg-\S+/g, '') + ' bg-current/40';
         text.textContent = state.today
           ? `Closed · opens today at ${state.opensAt}`
           : `Closed · opens ${state.opensDay} at ${state.opensAt}`;

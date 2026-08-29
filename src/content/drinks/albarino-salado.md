@@ -17,6 +17,6 @@ order: 12
 
 Grown close enough to the Atlantic in Rías Baixas that the salt is not a tasting note
 so much as a fact. Aged on its lees for six months, giving it a weight most albariño
-doesn't have.
+doesn’t have.
 
 Cold, in a proper glass, not a flute.

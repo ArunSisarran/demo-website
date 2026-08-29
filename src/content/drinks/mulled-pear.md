@@ -18,4 +18,4 @@ Perry mulled with clove, star anise, and a strong lapsang, sweetened only by the
 Served hot in a handled glass.
 
 Winter only, and the one drink on the list we will make for you without ice, without
-comment, and without asking whether you're sure.
+comment, and without asking whether you’re sure.

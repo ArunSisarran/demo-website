@@ -251,7 +251,9 @@
        ignores width:100% and pushes the grid column past the viewport. */
     min-width: 0;
     max-width: 100%;
-    min-height: 48px;
+    /* Above both intrinsic heights: a <select> ignores line-height and would
+       otherwise sit ~2px shorter than the <input> beside it. */
+    min-height: 54px;
     padding: 0.75rem 1rem;
     border: 1px solid var(--color-rule-strong);
     border-radius: 0.25rem;
@@ -260,6 +262,9 @@
     font-family: var(--font-body);
     font-size: 1.0625rem;
     transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .field-input::placeholder {
+    color: rgb(26 24 21 / 0.62);
   }
   .field-input:focus-visible {
     border-color: var(--color-brand-lt);

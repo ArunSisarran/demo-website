@@ -78,16 +78,17 @@ const groups = CATEGORIES.map((category) => ({
         </fieldset>
       </div>
 
-      <details class="mt-6 max-w-xl">
+      <p class="mt-6 max-w-xl text-[15px] text-ink/70">
+        Everything is made in a bar that also handles nuts, dairy and gluten, so we
+        cannot promise no trace. If it matters, tell us and we will talk it through.
+      </p>
+
+      <details class="mt-4 max-w-xl">
         <summary class="eyebrow inline-flex min-h-11 cursor-pointer items-center text-brand/75 hover:text-brand">
           Allergens &amp; dietary
         </summary>
         <div class="mt-4 rounded-2xl border border-brand/15 bg-paper-sunk/50 p-5">
-          <p class="text-[15px] text-ink/75">
-            Hide anything containing these. Everything is made in a bar that also handles
-            nuts, dairy and gluten, so we cannot promise no trace — if it matters, tell us
-            and we will talk it through.
-          </p>
+          <p class="text-[15px] text-ink/75">Hide anything containing these.</p>
           <fieldset class="mt-4 flex flex-wrap gap-3">
             <legend class="sr-only">Hide drinks containing</legend>
             {ALLERGENS.map((allergen) => (

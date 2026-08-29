@@ -32,7 +32,7 @@ const nav = [
 
     <nav aria-label="Main" class="hidden items-center gap-9 md:flex">
       {nav.map((item) => (
-        <a href={item.href} class="eyebrow inline-flex min-h-11 items-center opacity-70 transition-opacity hover:opacity-100">
+        <a href={item.href} class="eyebrow inline-flex min-h-11 min-w-11 items-center justify-center opacity-70 transition-opacity hover:opacity-100">
           {item.label}
         </a>
       ))}

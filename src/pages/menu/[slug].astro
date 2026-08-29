@@ -26,8 +26,8 @@ const alsoTry = drinks
 
 <Base title={`${name} — Cellar & Vine`} description={note} ogImage={`/og/drinks/${drink.id}.jpg`} cartBar>
   <article class="mx-auto max-w-page px-6 pt-12 pb-24 md:px-10 md:pt-20 md:pb-32">
-    <a href="/menu" class="eyebrow text-brand/75 transition-colors hover:text-brand">
-      <span aria-hidden="true">&larr;</span> Back to the menu
+    <a href="/menu" class="eyebrow inline-flex min-h-11 items-center gap-2 text-brand/75 transition-colors hover:text-brand">
+      <span aria-hidden="true">&larr;</span>Back to the menu
     </a>
 
     <div class="mt-10 grid gap-14 md:grid-cols-2 md:gap-20">
@@ -74,7 +74,7 @@ const alsoTry = drinks
               <button type="button" class="step" data-step="-1" data-slug={drink.id} aria-label={`One fewer ${name}`}>&minus;</button>
               <span class="data w-10 text-center text-lg text-brand" data-qty-for={drink.id}>0</span>
               <button type="button" class="step" data-step="1" data-slug={drink.id} aria-label={`One more ${name}`}>+</button>
-              <a href="/cart" data-cart-link class="eyebrow ml-2 text-brand/75 underline underline-offset-4 hover:text-brand">In your order</a>
+              <a href="/cart" data-cart-link class="eyebrow ml-2 inline-flex min-h-11 items-center text-brand/75 underline underline-offset-4 hover:text-brand">In your order</a>
             </div>
             <button type="button" data-share class="btn btn-ghost">Share</button>
           </div>
@@ -90,7 +90,7 @@ const alsoTry = drinks
         </div>
 
         <div class="mt-10 rounded-2xl border border-brand/15 bg-paper-sunk/50 p-6">
-          <p class="eyebrow text-brand/75">What's in it</p>
+          <p class="eyebrow text-brand/75">What’s in it</p>
           <p class="mt-3 text-ink/75">{ingredients}</p>
 
           <p class="eyebrow mt-6 text-brand/75">Allergens</p>

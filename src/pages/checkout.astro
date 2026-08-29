@@ -15,8 +15,8 @@ const catalog = Object.fromEntries(
   cartDrawer={false}
 >
   <div class="mx-auto max-w-page px-6 pt-16 pb-24 md:px-10 md:pt-24 md:pb-32">
-    <a href="/cart" class="eyebrow text-brand/75 transition-colors hover:text-brand">
-      <span aria-hidden="true">&larr;</span> Back to the cart
+    <a href="/cart" class="eyebrow inline-flex min-h-11 items-center gap-2 text-brand/75 transition-colors hover:text-brand">
+      <span aria-hidden="true">&larr;</span>Back to the cart
     </a>
 
     <h1 class="mt-10 text-brand">
@@ -40,7 +40,7 @@ const catalog = Object.fromEntries(
     <div class="mt-14 grid gap-16 lg:grid-cols-[1.4fr_1fr] lg:items-start">
       <form novalidate data-checkout class="space-y-10">
         <fieldset class="space-y-6">
-          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">Who it's for</legend>
+          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">Who it’s for</legend>
           <div class="grid gap-6 sm:grid-cols-2">
             <Field label="Full name" name="name" required autocomplete="name" />
             <Field label="Email" name="email" type="email" required autocomplete="email" inputmode="email" />
@@ -48,7 +48,7 @@ const catalog = Object.fromEntries(
         </fieldset>
 
         <fieldset class="space-y-6">
-          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">When you'll collect</legend>
+          <legend class="font-display text-xl tracking-[0.05em] text-brand uppercase">When you’ll collect</legend>
           <p class="text-[15px] text-ink/75">
             Only the hours we are actually open show up here. Orders are held for an hour
             past the slot you pick.
@@ -90,7 +90,7 @@ const catalog = Object.fromEntries(
         </button>
       </form>
 
-      <aside class="rounded-3xl border border-brand/15 bg-paper-sunk/60 p-8">
+      <aside class="order-first rounded-3xl border border-brand/15 bg-paper-sunk/60 p-8 lg:order-none">
         <p class="eyebrow text-brand/75">Your round</p>
         <ul class="mt-6 space-y-4" data-lines></ul>
         <div class="mt-6 flex justify-between gap-6 border-t border-brand/15 pt-6">
